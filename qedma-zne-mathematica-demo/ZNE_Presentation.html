@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZNE — Zero-Noise Extrapolation Demo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e27;--bg2:#111638;--cyan:#00d4ff;--magenta:#ff006e;--green:#00ff88;--white:#eef2ff;--gray:#8892b0;--code-bg:#0d1137;--slide-pad:60px}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--white);overflow:hidden;height:100vh;width:100vw}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--magenta));z-index:100;transition:width .4s}
+.deck{position:relative;width:100%;height:100%}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:var(--slide-pad) 80px;opacity:0;pointer-events:none;transition:opacity .45s ease,transform .45s ease;transform:scale(.97);overflow-y:auto}
+.slide.active{opacity:1;pointer-events:auto;transform:scale(1)}
+h1{font-size:2.8rem;font-weight:700;margin-bottom:.5em;background:linear-gradient(135deg,var(--cyan),var(--magenta));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
+h2{font-size:1.6rem;font-weight:600;color:var(--cyan);margin-bottom:1.2em;text-transform:uppercase;letter-spacing:2px;font-size:1rem}
+.subtitle{font-size:1.3rem;color:var(--gray);margin-bottom:.4em}
+.tagline{font-size:1rem;color:var(--gray);font-style:italic;margin-top:1.2em}
+.bullet{display:flex;align-items:flex-start;gap:16px;margin-bottom:1.1em;font-size:1.15rem;line-height:1.6}
+.bullet .icon{font-size:1.5rem;flex-shrink:0;margin-top:2px}
+.bullet strong{color:var(--cyan)}
+.accent{color:var(--cyan)}
+.accent-m{color:var(--magenta)}
+.accent-g{color:var(--green)}
+code,.code{font-family:'Fira Code',Consolas,monospace}
+.code-block{background:var(--code-bg);border:1px solid #1e2555;border-radius:10px;padding:20px 24px;font-family:'Fira Code',Consolas,monospace;font-size:.95rem;line-height:1.7;margin:1em 0;overflow-x:auto;white-space:pre}
+.code-block .fn{color:var(--cyan)}
+.code-block .param{color:var(--magenta)}
+.code-block .str{color:var(--green)}
+.code-block .comment{color:#555e8a;font-style:italic}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:1em}
+.col{background:var(--bg2);border-radius:12px;padding:28px;border:1px solid #1e2555}
+.col h3{color:var(--cyan);margin-bottom:.7em;font-size:1.1rem}
+.col.magenta h3{color:var(--magenta)}
+.img-container{text-align:center;margin:1em 0}
+.img-container img{max-width:85%;max-height:52vh;border-radius:10px;border:1px solid #1e2555;box-shadow:0 0 40px rgba(0,212,255,.12)}
+.callout{display:inline-block;background:var(--bg2);border-left:3px solid var(--cyan);padding:8px 16px;border-radius:0 8px 8px 0;margin:4px 0;font-size:.95rem}
+.callout.magenta{border-left-color:var(--magenta)}
+.callout.green{border-left-color:var(--green)}
+.insight-box{background:linear-gradient(135deg,rgba(0,212,255,.08),rgba(255,0,110,.08));border:1px solid rgba(0,212,255,.25);border-radius:12px;padding:20px 24px;margin:1em 0;font-size:1.1rem;text-align:center}
+.tree{font-family:'Fira Code',Consolas,monospace;font-size:.95rem;line-height:2;background:var(--code-bg);border-radius:10px;padding:20px 24px;border:1px solid #1e2555}
+.tree .dir{color:var(--cyan)}
+.tree .file{color:var(--white)}
+.tree .desc{color:var(--gray)}
+table{width:100%;border-collapse:collapse;margin:1em 0;font-size:1rem}
+th{text-align:left;padding:12px 16px;background:var(--bg2);color:var(--cyan);border-bottom:2px solid var(--cyan);font-weight:600}
+td{padding:12px 16px;border-bottom:1px solid #1e2555}
+tr:hover td{background:rgba(0,212,255,.04)}
+.controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:1em 0}
+.ctrl{background:var(--bg2);border-radius:10px;padding:16px 20px;border:1px solid #1e2555;display:flex;align-items:center;gap:12px}
+.ctrl .icon{font-size:1.4rem}
+.ctrl .label{font-weight:600;color:var(--cyan);font-size:.85rem;text-transform:uppercase;letter-spacing:1px}
+.ctrl .range{color:var(--gray);font-size:.9rem}
+.center{text-align:center}
+.big-emoji{font-size:3rem;margin-bottom:.5em}
+.glow{text-shadow:0 0 20px rgba(0,212,255,.4)}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;margin:1.5em auto;max-width:400px}
+.bar{flex:1;border-radius:6px 6px 0 0;transition:height .5s;position:relative}
+.bar .lbl{position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);font-size:.75rem;color:var(--gray);white-space:nowrap}
+.bar .val{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:.75rem;color:var(--white)}
+
+/* Nav */
+.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:20px;z-index:50}
+.nav-btn{width:52px;height:52px;border-radius:50%;border:2px solid var(--cyan);background:rgba(0,212,255,.08);color:var(--cyan);font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.nav-btn:hover{background:var(--cyan);color:var(--bg);box-shadow:0 0 20px rgba(0,212,255,.4)}
+.nav-btn:disabled{opacity:.25;cursor:default;background:transparent;color:var(--gray);border-color:var(--gray)}
+.dots{display:flex;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;background:#1e2555;cursor:pointer;transition:all .3s}
+.dot.active{background:var(--cyan);box-shadow:0 0 10px rgba(0,212,255,.5);transform:scale(1.3)}
+.slide-num{color:var(--gray);font-size:.85rem;font-family:'Fira Code',monospace;min-width:60px;text-align:center}
+
+/* Decorative */
+.circuit-deco{position:absolute;right:60px;top:50%;transform:translateY(-50%);opacity:.07;font-size:8rem;font-family:'Fira Code',monospace;line-height:1;pointer-events:none}
+.bg-grid{position:absolute;inset:0;background-image:radial-gradient(circle,#1e2555 1px,transparent 1px);background-size:30px 30px;opacity:.3;pointer-events:none}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- ==================== SLIDE 1: TITLE ==================== -->
+<div class="slide active" data-i="0">
+<div class="bg-grid"></div>
+<div class="circuit-deco">|ψ⟩</div>
+<div style="position:relative;z-index:1">
+  <h1>Zero-Noise Extrapolation</h1>
+  <p class="subtitle">Interactive Mathematica 14.3 Demonstrator</p>
+  <p class="subtitle" style="font-size:1rem">Inspired by Temme, Bravyi &amp; Gambetta · <span class="accent">arXiv:1612.02058</span></p>
+  <p class="tagline">Built with Wolfram QuantumFramework</p>
+  <div style="margin-top:2.5em;display:flex;gap:12px">
+    <span class="callout">Mathematica 14.3</span>
+    <span class="callout magenta">QuantumFramework</span>
+    <span class="callout green">Self-Contained</span>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 2: THE PROBLEM ==================== -->
+<div class="slide" data-i="1">
+<h2>The Challenge</h2>
+<h1>Quantum Noise is Unavoidable</h1>
+<div style="margin-top:1em">
+  <div class="bullet"><span class="icon">🔬</span><span>Real quantum hardware introduces <strong>decoherence</strong> and <strong>gate imperfections</strong> at every operation</span></div>
+  <div class="bullet"><span class="icon">📉</span><span>Noisy expectation values <strong>deviate systematically</strong> from ideal — amplitudes shrink toward zero</span></div>
+  <div class="bullet"><span class="icon">❌</span><span>Full error correction requires <strong>thousands of physical qubits</strong> per logical qubit — not yet practical</span></div>
+  <div class="bullet"><span class="icon">💰</span><span>Current NISQ devices: <strong>50–1000 noisy qubits</strong> — every gate adds error</span></div>
+</div>
+<div class="insight-box" style="margin-top:1.5em">
+  💡 Can we <strong class="accent">mitigate</strong> noise <em>without</em> full error correction?
+</div>
+</div>
+
+<!-- ==================== SLIDE 3: THE IDEA ==================== -->
+<div class="slide" data-i="2">
+<h2>Core Concept</h2>
+<h1>Zero-Noise Extrapolation</h1>
+<div class="cols">
+  <div>
+    <div class="bullet"><span class="icon" style="color:var(--cyan)">①</span><span><strong>Amplify</strong> noise intentionally at scale factors λ = 1, 2, 3, 4</span></div>
+    <div class="bullet"><span class="icon" style="color:var(--magenta)">②</span><span><strong>Measure</strong> ⟨Z⟩ at each noise level → collect E(λ₁), E(λ₂), …</span></div>
+    <div class="bullet"><span class="icon" style="color:var(--green)">③</span><span><strong>Fit</strong> polynomial to E(λ) and <strong>extrapolate</strong> to λ → 0</span></div>
+  </div>
+  <div>
+    <div class="bar-chart">
+      <div class="bar" style="height:95%;background:var(--cyan)"><span class="val">E₀</span><span class="lbl">λ→0</span></div>
+      <div class="bar" style="height:80%;background:#4488cc"><span class="val">E₁</span><span class="lbl">λ=1</span></div>
+      <div class="bar" style="height:58%;background:#6666aa"><span class="val">E₂</span><span class="lbl">λ=2</span></div>
+      <div class="bar" style="height:38%;background:#8844aa"><span class="val">E₃</span><span class="lbl">λ=3</span></div>
+      <div class="bar" style="height:22%;background:var(--magenta)"><span class="val">E₄</span><span class="lbl">λ=4</span></div>
+    </div>
+    <p style="text-align:center;color:var(--gray);font-size:.85rem;margin-top:2em">↑ Extrapolate back to zero noise</p>
+  </div>
+</div>
+<p class="tagline">Richardson extrapolation — the same math used in numerical analysis since the 1920s</p>
+</div>
+
+<!-- ==================== SLIDE 4: ARCHITECTURE ==================== -->
+<div class="slide" data-i="3">
+<h2>Project Structure</h2>
+<h1>Self-Contained Demo</h1>
+<div class="tree">
+<span class="dir">qedma-zne-mathematica-demo/</span>
+├── <span class="file">README.md</span>              <span class="desc">← Quick-start guide</span>
+├── <span class="dir">src/</span>
+│   └── <span class="file">ZNEDemo.wl</span>          <span class="desc">← Reusable package · 5 public functions</span>
+├── <span class="dir">notebook/</span>
+│   ├── <span class="file">ZNE_Demo.nb</span>        <span class="desc">← Interactive notebook with Manipulate UI</span>
+│   └── <span class="dir">exports/</span>
+│       ├── <span class="file">ZNE_Demo.pdf</span>   <span class="desc">← Exported PDF</span>
+│       └── <span class="dir">figures/</span>
+│           ├── <span class="file">zne_main_plot.png</span>
+│           └── <span class="file">zne_error_plot.png</span>
+└── <span class="dir">docs/</span>
+    ├── <span class="file">validation-report.md</span>  <span class="desc">← Numeric evidence</span>
+    ├── <span class="file">references.md</span>
+    └── <span class="file">env-check.md</span>
+</div>
+<div style="margin-top:1.5em;display:flex;gap:12px">
+  <span class="callout green">✓ Clone &amp; Run</span>
+  <span class="callout">✓ No external dependencies</span>
+  <span class="callout magenta">✓ Portable across machines</span>
+</div>
+</div>
+
+<!-- ==================== SLIDE 5: API ==================== -->
+<div class="slide" data-i="4">
+<h2>Package</h2>
+<h1>ZNEDemo.wl — Clean API</h1>
+<div class="code-block"><span class="comment">(* Circuit construction *)</span>
+<span class="fn">ZNE`MakeCircuit</span>[<span class="param">θ</span>, nQubits, depth]
+
+<span class="comment">(* Expectation values *)</span>
+<span class="fn">ZNE`IdealExpectation</span>[<span class="param">θ</span>]
+<span class="fn">ZNE`NoisyExpectation</span>[<span class="param">θ</span>, <span class="param">λ</span>, <span class="str">"BaseNoise"</span> → 0.02]
+<span class="fn">ZNE`ZNEEstimate</span>[<span class="param">θ</span>, {1,2,3,4}, order]
+
+<span class="comment">(* Full parameter sweep *)</span>
+<span class="fn">ZNE`GenerateSweep</span>[<span class="param">θList</span>, <span class="param">λList</span>, order]
+  → <span class="str">"IdealData"</span>, <span class="str">"NoisyData"</span>, <span class="str">"ZNEData"</span>, <span class="str">"Meta"</span></div>
+<div style="margin-top:1em">
+  <span class="callout">NoiseModel</span>
+  <span class="callout">BaseNoise</span>
+  <span class="callout magenta">Shots</span>
+  <span class="callout green">Seed</span>
+  <span class="callout">Observable</span>
+</div>
+</div>
+
+<!-- ==================== SLIDE 6: NOISE MODELS ==================== -->
+<div class="slide" data-i="5">
+<h2>Physics</h2>
+<h1>Two Noise Models</h1>
+<div class="cols">
+  <div class="col">
+    <h3>DepolarizingEnd</h3>
+    <p style="margin-bottom:.8em">Single depolarizing channel applied <strong>once at circuit end</strong>.</p>
+    <div class="code-block" style="font-size:.85rem">ρ → (1 − p)ρ + p · I/2
+⟨Z⟩_noisy = (1 − λ·p₀) · ⟨Z⟩_ideal</div>
+    <div class="bar-chart" style="height:80px;margin-top:1em">
+      <div class="bar" style="height:95%;background:var(--cyan)"><span class="lbl">λ=1</span></div>
+      <div class="bar" style="height:82%;background:#4488cc"><span class="lbl">λ=2</span></div>
+      <div class="bar" style="height:70%;background:#6666aa"><span class="lbl">λ=3</span></div>
+      <div class="bar" style="height:58%;background:#8844aa"><span class="lbl">λ=4</span></div>
+    </div>
+  </div>
+  <div class="col magenta">
+    <h3>DepolarizingPerGate</h3>
+    <p style="margin-bottom:.8em">Channel applied <strong>after each gate</strong> — stronger degradation for deeper circuits.</p>
+    <div class="code-block" style="font-size:.85rem">p_eff = 1 − (1 − λ·p₀)^depth
+⟨Z⟩_noisy = (1 − p_eff) · ⟨Z⟩_ideal</div>
+    <div class="bar-chart" style="height:80px;margin-top:1em">
+      <div class="bar" style="height:88%;background:var(--magenta)"><span class="lbl">λ=1</span></div>
+      <div class="bar" style="height:62%;background:#aa4488"><span class="lbl">λ=2</span></div>
+      <div class="bar" style="height:38%;background:#884488"><span class="lbl">λ=3</span></div>
+      <div class="bar" style="height:18%;background:#664488"><span class="lbl">λ=4</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 7: MAIN PLOT ==================== -->
+<div class="slide" data-i="6">
+<h2>Results</h2>
+<h1>Ideal vs Noisy vs ZNE</h1>
+<div class="img-container">
+  <img src="notebook/exports/figures/zne_main_plot.png" alt="ZNE Main Plot">
+</div>
+<div style="display:flex;gap:12px;justify-content:center;margin-top:.5em">
+  <span class="callout" style="border-left-color:#222">■ Black = Ideal (Cos θ)</span>
+  <span class="callout" style="border-left-color:orange">■ Colors = Noisy at λ = 1,2,3,4</span>
+  <span class="callout" style="border-left-color:red">⬥ Red dashed = ZNE ≈ Ideal ✓</span>
+</div>
+</div>
+
+<!-- ==================== SLIDE 8: ERROR PLOT ==================== -->
+<div class="slide" data-i="7">
+<h2>Analysis</h2>
+<h1>Error Comparison</h1>
+<div class="img-container">
+  <img src="notebook/exports/figures/zne_error_plot.png" alt="ZNE Error Plot">
+</div>
+<div class="insight-box">
+  ZNE reduces absolute error to <strong class="accent-g">near zero</strong> across all θ values<br>
+  <span style="font-size:.9rem;color:var(--gray)">Noisy MAE ≈ 0.013 → ZNE MAE ≈ 0.000 · <strong class="accent">~100% improvement</strong></span>
+</div>
+</div>
+
+<!-- ==================== SLIDE 9: INTERACTIVE CONTROLS ==================== -->
+<div class="slide" data-i="8">
+<h2>Notebook</h2>
+<h1>Interactive Manipulate UI</h1>
+<div class="controls-grid">
+  <div class="ctrl"><span class="icon">🎚️</span><div><div class="label">Base Noise p₀</div><div class="range">0 → 0.1 (step 0.005)</div></div></div>
+  <div class="ctrl"><span class="icon">🔄</span><div><div class="label">Noise Model</div><div class="range">DepolarizingEnd | DepolarizingPerGate</div></div></div>
+  <div class="ctrl"><span class="icon">📊</span><div><div class="label">Lambda List</div><div class="range">{1,2,3,4} or {1,1.5,2,2.5,3}</div></div></div>
+  <div class="ctrl"><span class="icon">📐</span><div><div class="label">Polynomial Order</div><div class="range">1, 2, or 3</div></div></div>
+  <div class="ctrl"><span class="icon">🎯</span><div><div class="label">Theta Resolution</div><div class="range">10 — 80 points</div></div></div>
+  <div class="ctrl"><span class="icon">🔍</span><div><div class="label">Probe θ (fit diagnostic)</div><div class="range">0.1 — 6.0</div></div></div>
+</div>
+<div class="insight-box" style="margin-top:1em">
+  ⚡ All three plots update <strong>in real-time</strong> as you adjust controls
+</div>
+</div>
+
+<!-- ==================== SLIDE 10: VALIDATION ==================== -->
+<div class="slide" data-i="9">
+<h2>Quality</h2>
+<h1>Automated Validation</h1>
+<table>
+  <thead><tr><th>Check</th><th>Description</th><th>Metric</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td><strong class="accent">1</strong></td><td>Low noise (p₀ = 0.001): ZNE ≈ Ideal</td><td>max|ZNE − Ideal| ≈ 10⁻¹⁵</td><td style="color:var(--green);font-weight:700">✅ PASS</td></tr>
+    <tr><td><strong class="accent">2</strong></td><td>ZNE improves over noisy baseline (p₀ = 0.05)</td><td>~100% error reduction</td><td style="color:var(--green);font-weight:700">✅ PASS</td></tr>
+    <tr><td><strong class="accent">3</strong></td><td>PerGate noise &gt; End noise</td><td>Equal for single gate (expected)</td><td style="color:orange;font-weight:700">⚠️ Expected</td></tr>
+  </tbody>
+</table>
+<div style="margin-top:1.5em">
+  <div class="bullet"><span class="icon">🔬</span><span>Validation runs <strong>automatically</strong> inside the notebook — reproducible on any machine</span></div>
+  <div class="bullet"><span class="icon">📄</span><span>Full numeric report generated in <code>docs/validation-report.md</code></span></div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 11: LIMITATIONS ==================== -->
+<div class="slide" data-i="10">
+<h2>Discussion</h2>
+<h1>Limitations &amp; Extensions</h1>
+<div class="cols">
+  <div class="col">
+    <h3>⚠️ Limitations</h3>
+    <div class="bullet" style="font-size:1rem"><span class="icon">📈</span><span><strong>Variance amplification</strong> — extrapolation magnifies statistical noise at high p₀</span></div>
+    <div class="bullet" style="font-size:1rem"><span class="icon">🔢</span><span><strong>Polynomial instability</strong> — high-order fits can overshoot with few data points</span></div>
+    <div class="bullet" style="font-size:1rem"><span class="icon">⏱️</span><span><strong>Sampling overhead</strong> — each λ requires additional circuit executions</span></div>
+  </div>
+  <div class="col magenta">
+    <h3>🚀 Future Extensions</h3>
+    <div class="bullet" style="font-size:1rem"><span class="icon">🔗</span><span>Multi-qubit circuits &amp; entangling gates</span></div>
+    <div class="bullet" style="font-size:1rem"><span class="icon">🎲</span><span>Probabilistic Error Cancellation (PEC)</span></div>
+    <div class="bullet" style="font-size:1rem"><span class="icon">💻</span><span>Integration with real hardware backends</span></div>
+    <div class="bullet" style="font-size:1rem"><span class="icon">📊</span><span>Comparison with other mitigation techniques</span></div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== SLIDE 12: THANK YOU ==================== -->
+<div class="slide" data-i="11">
+<div class="bg-grid"></div>
+<div style="position:relative;z-index:1;text-align:center">
+  <div class="big-emoji">🙏</div>
+  <h1 style="display:inline-block">Thank You</h1>
+  <p class="subtitle" style="margin-top:1em">Try it yourself:</p>
+  <div class="code-block" style="display:inline-block;text-align:left;margin:1em auto">
+<span class="comment">(* 1. Install paclet *)</span>
+<span class="fn">PacletInstall</span>[<span class="str">"Wolfram/QuantumFramework"</span>]
+
+<span class="comment">(* 2. Open &amp; run *)</span>
+Open <span class="str">notebook/ZNE_Demo.nb</span> → Evaluate All Cells</div>
+  <div style="margin-top:1.5em;display:flex;gap:16px;justify-content:center">
+    <span class="callout">📄 arXiv:1612.02058</span>
+    <span class="callout magenta">📄 arXiv:1805.04492</span>
+  </div>
+  <p style="margin-top:2em;font-size:1.4rem;font-weight:700;color:var(--cyan)" class="glow">Questions?</p>
+</div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div class="nav">
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)">◀</button>
+  <div class="dots" id="dots"></div>
+  <span class="slide-num" id="slideNum"></span>
+  <button class="nav-btn" id="nextBtn" onclick="go(1)">▶</button>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+let cur=0;
+const dots=document.getElementById('dots');
+const progress=document.getElementById('progress');
+const slideNum=document.getElementById('slideNum');
+
+// Build dots
+for(let i=0;i<total;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' active':'');
+  d.onclick=()=>goTo(i);
+  dots.appendChild(d);
+}
+
+function goTo(n){
+  if(n<0||n>=total)return;
+  // Remove all state classes from ALL slides first
+  for(let i=0;i<total;i++){
+    slides[i].classList.remove('active','prev','next');
+  }
+  const allDots=dots.querySelectorAll('.dot');
+  allDots[cur].classList.remove('active');
+  cur=n;
+  slides[cur].classList.add('active');
+  allDots[cur].classList.add('active');
+  progress.style.width=((cur+1)/total*100)+'%';
+  slideNum.textContent=(cur+1)+' / '+total;
+  document.getElementById('prevBtn').disabled=cur===0;
+  document.getElementById('nextBtn').disabled=cur===total-1;
+}
+function go(d){goTo(cur+d)}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ')go(1);
+  if(e.key==='ArrowLeft')go(-1);
+  if(e.key==='Home')goTo(0);
+  if(e.key==='End')goTo(total-1);
+});
+
+// Touch swipe
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX);
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>50)go(dx<0?1:-1);
+});
+
+goTo(0);
+</script>
+</body>
+</html>

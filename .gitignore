@@ -1,0 +1,5 @@
+# Temp wolframscript logs
+env_stderr.txt
+env_stdout.txt
+validation_stderr.txt
+validation_stdout.txt
