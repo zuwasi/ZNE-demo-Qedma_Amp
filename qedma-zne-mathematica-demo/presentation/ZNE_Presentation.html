@@ -225,7 +225,7 @@ tr:hover td{background:rgba(0,212,255,.04)}
 <h2>Results</h2>
 <h1>Ideal vs Noisy vs ZNE</h1>
 <div class="img-container">
-  <img src="notebook/exports/figures/zne_main_plot.png" alt="ZNE Main Plot">
+  <img src="figures/zne_main_plot.png" alt="ZNE Main Plot">
 </div>
 <div style="display:flex;gap:12px;justify-content:center;margin-top:.5em">
   <span class="callout" style="border-left-color:#222">■ Black = Ideal (Cos θ)</span>
@@ -239,7 +239,7 @@ tr:hover td{background:rgba(0,212,255,.04)}
 <h2>Analysis</h2>
 <h1>Error Comparison</h1>
 <div class="img-container">
-  <img src="notebook/exports/figures/zne_error_plot.png" alt="ZNE Error Plot">
+  <img src="figures/zne_error_plot.png" alt="ZNE Error Plot">
 </div>
 <div class="insight-box">
   ZNE reduces absolute error to <strong class="accent-g">near zero</strong> across all θ values<br>
@@ -303,8 +303,45 @@ tr:hover td{background:rgba(0,212,255,.04)}
 </div>
 </div>
 
-<!-- ==================== SLIDE 12: THANK YOU ==================== -->
+<!-- ==================== SLIDE 12: LIVE DEMO ==================== -->
 <div class="slide" data-i="11">
+<h2>Live Demo</h2>
+<h1>ZNE Interactive Explorer — Built Live</h1>
+<div style="margin-top:.5em">
+  <div class="bullet"><span class="icon">⚡</span><span><strong class="accent">Amp</strong> generated a fully interactive Mathematica notebook <em>from scratch</em>, right here on stage</span></div>
+</div>
+<div class="cols" style="margin-top:.8em">
+  <div class="col">
+    <h3>🏗️ What Amp Built</h3>
+    <div class="tree" style="font-size:.85rem;line-height:1.8">
+<span class="dir">zne-live-demo/</span>
+├── <span class="file">build_notebook.wls</span>  <span class="desc">← Generator script</span>
+├── <span class="file">ZNE_Interactive.nb</span>  <span class="desc">← Output notebook</span>
+└── <span class="dir">src/</span>
+    └── <span class="file">ZNEDemo.wl</span>         <span class="desc">← Reused package</span>
+    </div>
+  </div>
+  <div class="col magenta">
+    <h3>🎛️ Notebook Highlights</h3>
+    <div class="bullet" style="font-size:.95rem"><span class="icon">🎚️</span><span><strong>Manipulate</strong> with 6 controls — sliders, setters, popups</span></div>
+    <div class="bullet" style="font-size:.95rem"><span class="icon">📑</span><span><strong>TabView</strong> — Main Plot · Error Analysis · Extrapolation Fit</span></div>
+    <div class="bullet" style="font-size:.95rem"><span class="icon">📊</span><span><strong>Publication figure</strong> — colour-blind safe, export to PNG &amp; PDF</span></div>
+    <div class="bullet" style="font-size:.95rem"><span class="icon">✅</span><span><strong>PASS/FAIL verdict</strong> with MAE metrics in real time</span></div>
+  </div>
+</div>
+<div class="insight-box" style="margin-top:1.2em">
+  🚀 The notebook was generated via <code>wolframscript</code> using <strong>Export[…, Notebook[…], "NB"]</strong> — no GUI needed<br>
+  <span style="font-size:.9rem;color:var(--gray)">Deferred cells: code is visible but waits for the user to click Evaluate</span>
+</div>
+<div style="margin-top:1em;display:flex;gap:12px;justify-content:center">
+  <span class="callout green">✓ 21 KB valid .nb</span>
+  <span class="callout">✓ 6 sections</span>
+  <span class="callout magenta">✓ Opens instantly</span>
+</div>
+</div>
+
+<!-- ==================== SLIDE 13: THANK YOU ==================== -->
+<div class="slide" data-i="12">
 <div class="bg-grid"></div>
 <div style="position:relative;z-index:1;text-align:center">
   <div class="big-emoji">🙏</div>
