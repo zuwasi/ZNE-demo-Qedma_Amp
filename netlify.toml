@@ -1,0 +1,7 @@
+[build]
+  publish = "qedma-zne-mathematica-demo/presentation"
+
+[[redirects]]
+  from = "/"
+  to = "/ZNE_Presentation.html"
+  status = 200
