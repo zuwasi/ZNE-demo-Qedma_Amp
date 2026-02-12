@@ -1,0 +1,466 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     20716,        457]
+NotebookOptionsPosition[     18860,        426]
+NotebookOutlinePosition[     19263,        443]
+CellTagsIndexPosition[     19220,        440]
+WindowTitle->ZNE Interactive Explorer
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Zero-Noise Extrapolation \[LongDash] Interactive Explorer", "Title",ExpressionUUID->"6a2ef4ce-1c1f-3f47-b5a3-0153570dea75"],
+
+Cell["Quantum Error Mitigation with Mathematica 14.3", "Subtitle",ExpressionUUID->"28b6b44b-4b77-474c-bb31-d9e22127da08"],
+
+Cell["\<\
+Zero-Noise Extrapolation (ZNE) is a leading quantum error mitigation \
+technique. The idea: run a circuit at several amplified noise levels (\
+\[Lambda] = 1, 2, 3, \[Ellipsis]), then extrapolate back to the zero-noise \
+limit (\[Lambda] \[Rule] 0) using polynomial fitting. This notebook lets you \
+explore ZNE interactively, powered by the ZNEDemo.wl package.\
+\>", "Text",ExpressionUUID->"26956204-2693-9c40-89f1-6fc06a5e74d1"],
+
+Cell["Setup", "Section",ExpressionUUID->"0e5c360c-090f-5c4d-bfe7-db5cc7649f37"],
+
+Cell[BoxData[
+ RowBox[{"Get", "[", 
+  RowBox[{"FileNameJoin", "[", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"NotebookDirectory", "[", "]"}], ",", "\"\<src\>\"", 
+     ",", "\"\<ZNEDemo.wl\>\""}], "}"}], "]"}], "]"}]], "Input",ExpressionUUID\
+->"cd24f3a6-06d4-2446-85c2-014be76899b8"],
+
+Cell[BoxData[
+ RowBox[{"Print", "[", 
+  RowBox[{"\"\<Mathematica \>\"", "<>", 
+   RowBox[{"ToString", "[", "$VersionNumber", "]"}], "<>", "\"\< on \>\"", "<>",
+    "$SystemID"}], "]"}]], "Input",ExpressionUUID->"dc94ee51-bd15-0b41-bad6-\
+a82a23651e47"],
+
+Cell["Interactive ZNE Explorer", "Section",ExpressionUUID->"0861b477-e455-3d49-ac5f-3e3157afb4ec"],
+
+Cell["\<\
+Evaluate the cell below and use the sliders and controls to explore how ZNE \
+corrects noisy quantum expectation values. This is the main showcase of this \
+notebook.\
+\>", "Text",ExpressionUUID->"fb7babea-300f-4b4d-8bf2-883a8fc04f37"],
+
+Cell[BoxData[
+ TagBox[
+  StyleBox[
+   DynamicModuleBox[{$CellContext`lambdaList$$ = {1, 2, 
+    3}, $CellContext`noiseModel$$ = "DepolarizingEnd", $CellContext`nPts$$ = 
+    30, $CellContext`p0$$ = 0.03, $CellContext`polyOrd$$ = 
+    2, $CellContext`thetaProbe$$ = 1.5, Typeset`show$$ = True, 
+    Typeset`bookmarkList$$ = {}, Typeset`bookmarkMode$$ = "Menu", 
+    Typeset`animator$$, Typeset`animvar$$ = 1, Typeset`name$$ = 
+    "\"untitled\"", Typeset`specs$$ = {{{
+       Hold[$CellContext`p0$$], 0.03, "Base Noise p\_0"}, 0, 0.15, 0.005, 
+      ControlType -> Manipulator}, {{
+       Hold[$CellContext`noiseModel$$], "DepolarizingEnd", "Noise Model"}, {
+      "DepolarizingEnd", "DepolarizingPerGate"}, ControlType -> SetterBar}, {{
+      
+       Hold[$CellContext`lambdaList$$], {1, 2, 3}, "\[Lambda] Values"}, {{1, 
+       2, 3}, {1, 2, 3, 4}, {1, 1.5, 2, 2.5, 3, 3.5, 4}}, ControlType -> 
+      SetterBar}, {{
+       Hold[$CellContext`polyOrd$$], 2, "Poly Order"}, {1, 2, 3}, SetterBar, 
+      ControlType -> Manipulate`Dump`nSliders}, {{
+       Hold[$CellContext`nPts$$], 30, "Resolution"}, 15, 60, 5, ControlType -> 
+      Manipulator}, {{
+       Hold[$CellContext`thetaProbe$$], 1.5, "\[Theta] Probe"}, 0.2, 6., 0.1, 
+      ControlType -> Manipulator}}, Typeset`size$$ = Automatic, 
+    Typeset`update$$ = 0, Typeset`initDone$$, Typeset`skipInitDone$$ = True, 
+    Typeset`keyframeActionsQ$$ = False, Typeset`keyframeList$$ = {}}, 
+    DynamicBox[Manipulate`ManipulateBoxes[
+     1, StandardForm, 
+      "Variables" :> {$CellContext`lambdaList$$ = {1, 2, 
+         3}, $CellContext`noiseModel$$ = 
+        "DepolarizingEnd", $CellContext`nPts$$ = 30, $CellContext`p0$$ = 
+        0.03, $CellContext`polyOrd$$ = 2, $CellContext`thetaProbe$$ = 1.5}, 
+      "ControllerVariables" :> {}, 
+      "OtherVariables" :> {
+       Typeset`show$$, Typeset`bookmarkList$$, Typeset`bookmarkMode$$, 
+        Typeset`animator$$, Typeset`animvar$$, Typeset`name$$, 
+        Typeset`specs$$, Typeset`size$$, Typeset`update$$, Typeset`initDone$$,
+         Typeset`skipInitDone$$, Typeset`keyframeActionsQ$$, 
+        Typeset`keyframeList$$}, "Body" :> 
+      Module[{$CellContext`thetaList$, $CellContext`sweep$, \
+$CellContext`idealPts$, $CellContext`noisyPtsAll$, $CellContext`znePts$, \
+$CellContext`lambdaColors$, $CellContext`mainPlot$, $CellContext`noisyLam1$, \
+$CellContext`zneAbs$, $CellContext`noisyMAE$, $CellContext`zneMAE$, \
+$CellContext`improv$, $CellContext`verdict$, $CellContext`errorPlot$, \
+$CellContext`summaryGrid$, $CellContext`errorTab$, \
+$CellContext`noisyAtProbe$, $CellContext`zneAtProbe$, \
+$CellContext`idealAtProbe$, $CellContext`fitData$, $CellContext`polyOrder$, \
+$CellContext`fitExpr$, $CellContext`lam$, $CellContext`extrapTab$}, \
+$CellContext`thetaList$ = N[
+           Range[
+           0.1, 6., (6. - 0.1)/
+            Max[$CellContext`nPts$$ - 1, 1]]]; $CellContext`sweep$ = 
+         ZNE`GenerateSweep[$CellContext`thetaList$, \
+$CellContext`lambdaList$$, $CellContext`polyOrd$$, 
+           "NoiseModel" -> $CellContext`noiseModel$$, 
+           "BaseNoise" -> $CellContext`p0$$]; $CellContext`idealPts$ = \
+$CellContext`sweep$[
+          "IdealData"]; $CellContext`noisyPtsAll$ = $CellContext`sweep$[
+          "NoisyData"]; $CellContext`znePts$ = $CellContext`sweep$[
+          "ZNEData"]; $CellContext`lambdaColors$ = Table[
+           ColorData[
+           "Rainbow"][($CellContext`i - 1)/Max[
+            Length[$CellContext`lambdaList$$] - 1, 1]], {$CellContext`i, 
+            Length[$CellContext`lambdaList$$]}]; $CellContext`mainPlot$ = Show[
+           ListLinePlot[
+            Prepend[
+             Table[
+              $CellContext`noisyPtsAll$[
+               
+               Part[$CellContext`lambdaList$$, $CellContext`i]], \
+{$CellContext`i, 
+               Length[$CellContext`lambdaList$$]}], $CellContext`idealPts$], 
+            PlotStyle -> Prepend[
+              Table[{
+                Part[$CellContext`lambdaColors$, $CellContext`i], 
+                AbsoluteThickness[1.5]}, {$CellContext`i, 
+                Length[$CellContext`lambdaList$$]}], {Black, 
+               AbsoluteThickness[2.5]}], PlotLegends -> Prepend[
+              Table["\[Lambda]=" <> ToString[
+                 
+                 Part[$CellContext`lambdaList$$, $CellContext`i]], \
+{$CellContext`i, 
+                Length[$CellContext`lambdaList$$]}], "Ideal"]], 
+           
+           ListLinePlot[$CellContext`znePts$, 
+            PlotStyle -> {Red, Thick, Dashed}, PlotLegends -> {"ZNE"}], 
+           PlotLabel -> "ZNE Interactive Explorer", 
+           AxesLabel -> {
+            "\[Theta]", "\[LeftAngleBracket]Z\[RightAngleBracket]"}, 
+           ImageSize -> 580, GridLines -> 
+           Automatic]; $CellContext`noisyLam1$ = $CellContext`noisyPtsAll$[
+           Part[$CellContext`lambdaList$$, 1]]; $CellContext`zneAbs$ = 
+         MapThread[{
+            Part[#, 1], 
+            Abs[
+            Part[#, 2] - 
+             Part[#2, 
+              2]]}& , {$CellContext`idealPts$, $CellContext`znePts$}]; \
+$CellContext`noisyMAE$ = Mean[
+           MapThread[
+           Abs[Part[#, 2] - 
+             Part[#2, 
+              2]]& , {$CellContext`idealPts$, $CellContext`noisyLam1$}]]; \
+$CellContext`zneMAE$ = Mean[
+           Part[$CellContext`zneAbs$, All, 2]]; $CellContext`improv$ = 
+         If[$CellContext`noisyMAE$ > 0, 
+           100. (1 - $CellContext`zneMAE$/$CellContext`noisyMAE$), 
+           0]; $CellContext`verdict$ = 
+         If[$CellContext`zneMAE$ < $CellContext`noisyMAE$, 
+           Style["PASS", 
+            Darker[Green], Bold], 
+           Style["FAIL", Red, Bold]]; $CellContext`errorPlot$ = 
+         ListLinePlot[{
+            MapThread[{
+              Part[#, 1], 
+              Abs[
+              Part[#, 2] - 
+               Part[#2, 
+                2]]}& , {$CellContext`idealPts$, $CellContext`noisyLam1$}], \
+$CellContext`zneAbs$}, PlotStyle -> {{Blue, Thick}, {Red, Thick, Dashed}}, 
+           PlotLegends -> {"Noisy (\[Lambda]=1)", "ZNE"}, 
+           Filling -> {1 -> Axis}, AxesLabel -> {"\[Theta]", "Abs Error"}, 
+           PlotLabel -> "Absolute Error vs Ideal", ImageSize -> 
+           560]; $CellContext`summaryGrid$ = Panel[
+           Grid[{{
+              Style["Metric", Bold], 
+              Style["Value", Bold]}, {"Noisy MAE", 
+              NumberForm[$CellContext`noisyMAE$, 6]}, {"ZNE MAE", 
+              NumberForm[$CellContext`zneMAE$, 6]}, {"Improvement", 
+              Row[{
+                NumberForm[$CellContext`improv$, 3], "%"}]}, {
+             "Verdict", $CellContext`verdict$}}, Frame -> All, Alignment -> 
+            Center, Spacings -> {2, 1}], 
+           Style["Error Summary", Bold, 12]]; $CellContext`errorTab$ = 
+         Column[{$CellContext`errorPlot$, $CellContext`summaryGrid$}, 
+           Spacings -> 1]; $CellContext`noisyAtProbe$ = 
+         Table[{$CellContext`ll, 
+            
+            ZNE`NoisyExpectation[$CellContext`thetaProbe$$, $CellContext`ll, 
+             "NoiseModel" -> $CellContext`noiseModel$$, 
+             "BaseNoise" -> $CellContext`p0$$]}, {$CellContext`ll, \
+$CellContext`lambdaList$$}]; $CellContext`zneAtProbe$ = 
+         ZNE`ZNEEstimate[$CellContext`thetaProbe$$, \
+$CellContext`lambdaList$$, $CellContext`polyOrd$$, 
+           "NoiseModel" -> $CellContext`noiseModel$$, 
+           "BaseNoise" -> $CellContext`p0$$]; $CellContext`idealAtProbe$ = 
+         ZNE`IdealExpectation[$CellContext`thetaProbe$$]; \
+$CellContext`fitData$ = $CellContext`noisyAtProbe$; $CellContext`polyOrder$ = 
+         Min[$CellContext`polyOrd$$, Length[$CellContext`lambdaList$$] - 
+           1]; $CellContext`fitExpr$ = Fit[$CellContext`fitData$, 
+           
+           Table[$CellContext`lam$^$CellContext`k, {$CellContext`k, 
+             0, $CellContext`polyOrder$}], $CellContext`lam$]; \
+$CellContext`extrapTab$ = Show[
+           ListPlot[$CellContext`fitData$, PlotStyle -> {
+              PointSize[0.02], Blue}, PlotLegends -> {"E(\[Lambda]) data"}], 
+           
+           Plot[$CellContext`fitExpr$, {$CellContext`lam$, 0, 
+             Max[$CellContext`lambdaList$$] + 0.5}, 
+            PlotStyle -> {Red, Dashed, Thick}, PlotLegends -> {"Poly fit"}], 
+           ListPlot[{{0, $CellContext`zneAtProbe$}}, PlotStyle -> {Red, 
+              PointSize[0.025]}, PlotLegends -> {"ZNE (\[Lambda]\[Rule]0)"}], 
+           PlotLabel -> 
+           "Extrapolation at \[Theta] = " <> 
+            ToString[$CellContext`thetaProbe$$], 
+           AxesLabel -> {"\[Lambda]", "E(\[Lambda])"}, ImageSize -> 560, 
+           Epilog -> {
+             Text[
+              Style["ZNE = " <> ToString[
+                 NumberForm[$CellContext`zneAtProbe$, 5]] <> "\nIdeal = " <> 
+               ToString[
+                 NumberForm[$CellContext`idealAtProbe$, 5]], 11, Bold], 
+              Scaled[{0.75, 0.85}]]}, PlotRange -> All]; 
+        TabView[{
+          "Main Plot" -> $CellContext`mainPlot$, 
+           "Error Analysis" -> $CellContext`errorTab$, 
+           "Extrapolation Fit" -> $CellContext`extrapTab$}]], 
+      "Specifications" :> {{{$CellContext`p0$$, 0.03, "Base Noise p\_0"}, 0, 
+         0.15, 0.005}, {{$CellContext`noiseModel$$, "DepolarizingEnd", 
+          "Noise Model"}, {
+         "DepolarizingEnd", 
+          "DepolarizingPerGate"}}, {{$CellContext`lambdaList$$, {1, 2, 3}, 
+          "\[Lambda] Values"}, {{1, 2, 3}, {1, 2, 3, 4}, {
+          1, 1.5, 2, 2.5, 3, 3.5, 4}}}, {{$CellContext`polyOrd$$, 2, 
+          "Poly Order"}, {1, 2, 3}, 
+         SetterBar}, {{$CellContext`nPts$$, 30, "Resolution"}, 15, 60, 
+         5}, {{$CellContext`thetaProbe$$, 1.5, "\[Theta] Probe"}, 0.2, 6., 
+         0.1}}, "Options" :> {
+       Paneled -> True, FrameLabel -> "Zero-Noise Extrapolation Explorer"}, 
+      "DefaultOptions" :> {}],
+     SingleEvaluation->True],
+    Deinitialization:>None,
+    DynamicModuleValues:>{},
+    SynchronousInitialization->True,
+    UndoTrackedVariables:>{Typeset`show$$, Typeset`bookmarkMode$$},
+    UnsavedVariables:>{Typeset`initDone$$},
+    UntrackedVariables:>{Typeset`size$$}], "Manipulate",
+   Deployed->True,
+   StripOnInput->False],
+  Manipulate`InterpretManipulate[1]]], "Input",ExpressionUUID->"b084b5f0-14ac-\
+a64f-bacd-2b2910c4dc0e"],
+
+Cell["Publication Figure", "Section",ExpressionUUID->"528a5da5-56ac-7443-ab18-c6a98f540fbd"],
+
+Cell["\<\
+Generate a publication-quality figure with fixed parameters (p0=0.04, \
+\[Lambda]={1,2,3,4}, order=2, 40 points). Colour scheme chosen for \
+colour-blind accessibility.\
+\>", "Text",ExpressionUUID->"f4c45f3b-375f-d747-a428-d40837e8a309"],
+
+Cell[BoxData[
+ RowBox[{"Module", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+    "thetaList", ",", "sweep", ",", "idealPts", ",", "noisyPts", ",", 
+     "znePts"}], "}"}], ",", 
+   RowBox[{
+    RowBox[{"thetaList", "=", 
+     RowBox[{"N", "[", 
+      RowBox[{"Range", "[", 
+       RowBox[{"0.1`", ",", "6.`", ",", 
+        RowBox[{
+         FractionBox["1", "39"], " ", 
+         RowBox[{"(", 
+          RowBox[{"6.`", "\[VeryThinSpace]", "-", "0.1`"}], ")"}]}]}], "]"}], 
+      "]"}]}], ";", 
+    RowBox[{"sweep", "=", 
+     RowBox[{"ZNE`GenerateSweep", "[", 
+      RowBox[{"thetaList", ",", 
+       RowBox[{"{", 
+        RowBox[{"1", ",", "2", ",", "3", ",", "4"}], "}"}], ",", "2", ",", 
+       RowBox[{"\"\<BaseNoise\>\"", "\[Rule]", "0.04`"}]}], "]"}]}], ";", 
+    RowBox[{"idealPts", "=", 
+     RowBox[{"sweep", "[", "\"\<IdealData\>\"", "]"}]}], ";", 
+    RowBox[{"noisyPts", "=", 
+     RowBox[{"sweep", "[", "\"\<NoisyData\>\"", "]"}]}], ";", 
+    RowBox[{"znePts", "=", 
+     RowBox[{"sweep", "[", "\"\<ZNEData\>\"", "]"}]}], ";", 
+    RowBox[{"pubFig", "=", 
+     RowBox[{"Show", "[", 
+      RowBox[{"ListLinePlot", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"idealPts", ",", 
+          RowBox[{"noisyPts", "[", "1", "]"}], ",", 
+          RowBox[{"noisyPts", "[", "2", "]"}], ",", "znePts"}], "}"}], ",", 
+        RowBox[{"PlotTheme", "\[Rule]", "\"\<Scientific\>\""}], ",", 
+        RowBox[{"Frame", "\[Rule]", "True"}], ",", 
+        RowBox[{"FrameLabel", "\[Rule]", 
+         RowBox[{"{", 
+          
+          RowBox[{"\"\<\[Theta] (rad)\>\"", 
+           ",", "\"\<\[LeftAngleBracket]Z\[RightAngleBracket]\>\""}], "}"}]}],
+         ",", 
+        RowBox[{"PlotLabel", "\[Rule]", 
+         StyleBox["\"\<ZNE Error Mitigation\>\"",
+          StripOnInput->False,
+          FontSize->14,
+          FontWeight->Bold]}], ",", 
+        RowBox[{"PlotStyle", "\[Rule]", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"Black", ",", "Thick"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"ColorData", "[", "\"\<ColorblindSafe\>\"", "]"}], "[", 
+             "1", "]"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{
+             RowBox[{"ColorData", "[", "\"\<ColorblindSafe\>\"", "]"}], "[", 
+             "2", "]"}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"Red", ",", "Thick", ",", "Dashed"}], "}"}]}], "}"}]}], ",", 
+        RowBox[{"PlotLegends", "\[Rule]", 
+         RowBox[{"Placed", "[", 
+          RowBox[{
+           RowBox[{"{", 
+            
+            RowBox[{"\"\<Ideal\>\"", ",", "\"\<Noisy (\[Lambda]=1)\>\"", 
+             ",", "\"\<Noisy (\[Lambda]=2)\>\"", ",", "\"\<ZNE\>\""}], "}"}], 
+           ",", "Right"}], "]"}]}], ",", 
+        RowBox[{"ImageSize", "\[Rule]", "600"}]}], "]"}], "]"}]}], ";", 
+    "pubFig"}]}], "]"}]], "Input",ExpressionUUID->"45824c3b-c555-7f4a-b670-\
+a4334f0986d1"],
+
+Cell["Export", "Section",ExpressionUUID->"18ea3a7b-3575-ae41-99bf-9cdf60a16756"],
+
+Cell["\<\
+Run this cell after generating pubFig above. Exports PNG (150 dpi) and PDF \
+(vector).\
+\>", "Text",ExpressionUUID->"bc574396-2c20-f84d-a337-0d93c88bee8e"],
+
+Cell[BoxData[
+ RowBox[{"Module", "[", 
+  RowBox[{
+   RowBox[{"{", "exportDir", "}"}], ",", 
+   RowBox[{
+    RowBox[{"exportDir", "=", 
+     RowBox[{"FileNameJoin", "[", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"NotebookDirectory", "[", "]"}], ",", "\"\<exports\>\""}], 
+       "}"}], "]"}]}], ";", 
+    RowBox[{"If", "[", 
+     RowBox[{
+      RowBox[{"!", 
+       RowBox[{"DirectoryQ", "[", "exportDir", "]"}]}], ",", 
+      RowBox[{"CreateDirectory", "[", "exportDir", "]"}]}], "]"}], ";", 
+    RowBox[{"Export", "[", 
+     RowBox[{
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{"exportDir", ",", "\"\<ZNE_Figure.png\>\""}], "}"}], "]"}], ",",
+       "pubFig", ",", 
+      RowBox[{"ImageResolution", "\[Rule]", "150"}]}], "]"}], ";", 
+    RowBox[{"Export", "[", 
+     RowBox[{
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{"exportDir", ",", "\"\<ZNE_Figure.pdf\>\""}], "}"}], "]"}], ",",
+       "pubFig"}], "]"}], ";", 
+    RowBox[{"Print", "[", 
+     RowBox[{"\"\<Exported to:\\n\>\"", "<>", 
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{"exportDir", ",", "\"\<ZNE_Figure.png\>\""}], "}"}], "]"}], 
+      "<>", "\"\<\\n\>\"", "<>", 
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{"exportDir", ",", "\"\<ZNE_Figure.pdf\>\""}], "}"}], "]"}]}], 
+     "]"}]}]}], "]"}]], "Input",ExpressionUUID->"5beabe80-be50-ea4c-80cd-\
+bfcf77a8633b"],
+
+Cell["Quick Reference", "Section",ExpressionUUID->"93f7bc0a-e05a-b348-9fda-122aeaea84e8"],
+
+Cell[TextData[{
+ StyleBox["ZNE API Summary\n\n",
+  FontSize->13,
+  FontWeight->"Bold"],
+ StyleBox["MakeCircuit[theta, nQubits, depth]",
+  FontFamily->"Courier"],
+ " \[LongDash] Build a parameterized quantum circuit\n",
+ StyleBox["IdealExpectation[theta, opts]",
+  FontFamily->"Courier"],
+ " \[LongDash] Noiseless expectation value\n",
+ StyleBox["NoisyExpectation[theta, lambda, opts]",
+  FontFamily->"Courier"],
+ " \[LongDash] Noisy expectation at noise scale \[Lambda]\n",
+ StyleBox["ZNEEstimate[theta, lambdaList, order, opts]",
+  FontFamily->"Courier"],
+ " \[LongDash] Extrapolated (mitigated) estimate\n",
+ StyleBox["GenerateSweep[thetaList, lambdaList, order, opts]",
+  FontFamily->"Courier"],
+ " \[LongDash] Full parameter sweep returning Association\n\n",
+ StyleBox["Supported Options:\n",
+  FontWeight->"Bold"],
+ "  \"NoiseModel\" \[Rule] \"DepolarizingEnd\" | \"DepolarizingPerGate\"\n",
+ "  \"BaseNoise\" \[Rule] 0.02  (base depolarizing probability)\n",
+ "  \"Shots\" \[Rule] Infinity  (Infinity = analytic, finite = sampling \
+noise)\n",
+ "  \"Seed\" \[Rule] 1234  (RNG seed for shot noise)\n",
+ "  \"Observable\" \[Rule] \"PauliZ\"\n",
+ "  \"State\" \[Rule] Automatic"
+}], "Text",ExpressionUUID->"061a7dcf-0937-ff4d-a775-9f5c0834b10f"]
+},
+Saveable->True,
+WindowSize->{900, 800},
+WindowTitle->"ZNE Interactive Explorer",
+FrontEndVersion->"14.3 for Microsoft Windows (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"8b9d4e72-76b6-164a-9b2b-14808aaec584"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[592, 21, 129, 0, 70, "Title",ExpressionUUID->"6a2ef4ce-1c1f-3f47-b5a3-0153570dea75"],
+Cell[724, 23, 121, 0, 70, "Subtitle",ExpressionUUID->"28b6b44b-4b77-474c-bb31-d9e22127da08"],
+Cell[848, 25, 439, 6, 70, "Text",ExpressionUUID->"26956204-2693-9c40-89f1-6fc06a5e74d1"],
+Cell[1290, 33, 79, 0, 70, "Section",ExpressionUUID->"0e5c360c-090f-5c4d-bfe7-db5cc7649f37"],
+Cell[1372, 35, 286, 7, 70, "Input",ExpressionUUID->"cd24f3a6-06d4-2446-85c2-014be76899b8"],
+Cell[1661, 44, 252, 5, 70, "Input",ExpressionUUID->"dc94ee51-bd15-0b41-bad6-a82a23651e47"],
+Cell[1916, 51, 98, 0, 70, "Section",ExpressionUUID->"0861b477-e455-3d49-ac5f-3e3157afb4ec"],
+Cell[2017, 53, 245, 4, 70, "Text",ExpressionUUID->"fb7babea-300f-4b4d-8bf2-883a8fc04f37"],
+Cell[2265, 59, 10245, 200, 70, "Input",ExpressionUUID->"b084b5f0-14ac-a64f-bacd-2b2910c4dc0e"],
+Cell[12513, 261, 92, 0, 70, "Section",ExpressionUUID->"528a5da5-56ac-7443-ab18-c6a98f540fbd"],
+Cell[12608, 263, 247, 4, 70, "Text",ExpressionUUID->"f4c45f3b-375f-d747-a428-d40837e8a309"],
+Cell[12858, 269, 2947, 75, 70, "Input",ExpressionUUID->"45824c3b-c555-7f4a-b670-a4334f0986d1"],
+Cell[15808, 346, 80, 0, 70, "Section",ExpressionUUID->"18ea3a7b-3575-ae41-99bf-9cdf60a16756"],
+Cell[15891, 348, 165, 3, 70, "Text",ExpressionUUID->"bc574396-2c20-f84d-a337-0d93c88bee8e"],
+Cell[16059, 353, 1454, 39, 70, "Input",ExpressionUUID->"5beabe80-be50-ea4c-80cd-bfcf77a8633b"],
+Cell[17516, 394, 89, 0, 70, "Section",ExpressionUUID->"93f7bc0a-e05a-b348-9fda-122aeaea84e8"],
+Cell[17608, 396, 1248, 28, 70, "Text",ExpressionUUID->"061a7dcf-0937-ff4d-a775-9f5c0834b10f"]
+}
+]
+*)
+
+(* End of internal cache information *)
